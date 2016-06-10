@@ -11,7 +11,7 @@ namespace Abc.CacheManager.Test
     {
         ICacheManager GetCacheManager()
         {
-            bool runTestForRedisProvider = true;
+            bool runTestForRedisProvider = false;
 
             ICacheManager cm = null;
 
