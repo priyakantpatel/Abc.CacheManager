@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,6 +19,7 @@ namespace Abc.CacheManager.Providers
 
         ReaderWriterLock _lock = new ReaderWriterLock();
         Dictionary<string, CacheValue> _cache = new Dictionary<string, CacheValue>();
+        private const string CahcheKeyFormate = "{0}#{1}";
 
         public InMemoryCacheProvider(int celanupResolutionMs = 0)
         {
@@ -57,7 +59,13 @@ namespace Abc.CacheManager.Providers
 
         private string getKey(string nameSpace, string key)
         {
-            return nameSpace + "|" + key;
+            //return nameSpace + "|" + key;
+            if (string.IsNullOrWhiteSpace(nameSpace) ||
+                string.IsNullOrWhiteSpace(key))
+            {
+                throw new Exception("Invalid namespace or key");
+            }
+            return string.Format(CahcheKeyFormate, nameSpace, key);
         }
 
         public string Get(string nameSpace, string key)
@@ -111,6 +119,39 @@ namespace Abc.CacheManager.Providers
                 {
                     _cache.Remove(cacheKey);
                 }
+            }
+            finally
+            {
+                _lock.ReleaseWriterLock();
+            }
+        }
+
+
+        //Priyakant: need to test this
+        public void DeleteKeys(string nameSpacePattern, string keyPattern = null)
+        {
+            if (string.IsNullOrWhiteSpace(nameSpacePattern))
+            {
+                throw new Exception("Invalid namespace");
+            }
+
+            string scanPattern = string.Format(CahcheKeyFormate
+                , nameSpacePattern
+                , string.IsNullOrWhiteSpace(keyPattern) ? "" : keyPattern);
+
+            try
+            {
+                Regex rx = new Regex(scanPattern);
+                _lock.AcquireWriterLock(Timeout.Infinite);
+                List<string> keysToDelete = new List<string>();
+
+                foreach (var item in _cache)
+                {
+                    rx.IsMatch(item.Value.Value);
+                    keysToDelete.Add(item.Key);
+                }
+
+                keysToDelete.ForEach(x => _cache.Remove(x));
             }
             finally
             {

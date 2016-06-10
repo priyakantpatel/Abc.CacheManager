@@ -15,14 +15,15 @@ namespace Abc.CacheManager.Redis
             redis = ConnectionMultiplexer.Connect(configuration);
         }
 
-        //public SeRedisCacheProvider(Func<ConfigurationOptions> config)
-        //{
-        //    redis = ConnectionMultiplexer.Connect(config());
-        //}
-
+        private const string CahcheKeyFormate = "{0}#{1}";
         private string getKey(string nameSpace, string key)
         {
-            return nameSpace + "|" + key;
+            if(string.IsNullOrWhiteSpace(nameSpace) ||
+                string.IsNullOrWhiteSpace(key))
+            {
+                throw new Exception("Invalid namespace or key");
+            }
+            return string.Format(CahcheKeyFormate, nameSpace, key);
         }
 
         public void Delete(string nameSpace, string key)
@@ -32,9 +33,30 @@ namespace Abc.CacheManager.Redis
             db.KeyDeleteAsync(cacheKey);
         }
 
+        //Priyakant: need to test this
+        public void DeleteKeys(string nameSpacePattern, string keyPattern = null)
+        {
+            var server = redis.GetServer(redis.GetEndPoints().First());
+            IDatabase db = redis.GetDatabase();
+
+            if (string.IsNullOrWhiteSpace(nameSpacePattern))
+            {
+                throw new Exception("Invalid namespace");
+            }
+
+            string scanPattern = string.Format(CahcheKeyFormate
+                , nameSpacePattern
+                , string.IsNullOrWhiteSpace(keyPattern) ? "" : keyPattern);
+
+            foreach (var key in server.Keys(pattern: scanPattern))
+            {
+                Console.WriteLine("Deleting key [{0}]", key);
+                db.KeyDeleteAsync(key);
+            }
+        }
+
         public void FlushAll()
         {
-            IDatabase db = redis.GetDatabase();
             redis.GetServer(redis.GetEndPoints().First()).FlushDatabase();
         }
 

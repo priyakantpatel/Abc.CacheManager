@@ -1,0 +1,7 @@
+Help file
+Initializer - Warm up component
+Delete keys with RegEx
+Auto renew expire? need business case?
+Azure redis test
+InMemoryCacheProvider - Namespace handeling
+Callback - Notifications

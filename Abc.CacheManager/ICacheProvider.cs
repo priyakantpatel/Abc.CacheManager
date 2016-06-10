@@ -27,6 +27,7 @@ namespace Abc.CacheManager
         /// <param name="nameSpace">Namespace</param>
         /// <param name="key">Key</param>
         void Delete(string nameSpace, string key);
+        void DeleteKeys(string nameSpacePattern, string keyPattern = null);
 
         /// <summary>
         /// Delete all cache values
