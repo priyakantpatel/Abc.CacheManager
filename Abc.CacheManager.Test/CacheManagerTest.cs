@@ -11,14 +11,14 @@ namespace Abc.CacheManager.Test
     {
         ICacheManager GetCacheManager()
         {
-            bool runTestForRedisProvider = false;
+            bool runTestForRedisProvider = true;
 
             ICacheManager cm = null;
 
             if (runTestForRedisProvider)
             {
                 //Make sure you have redis installed locally and have default port 6379. Or update following redisConfig value
-                string redisConfig = "localhost:6379,defaultDatabase=1";
+                string redisConfig = "localhost:6379,defaultDatabase=1,allowAdmin=true";
                 var redisCp = new Redis.SeRedisCacheProvider(redisConfig);
                 cm = new CacheManager(redisCp);
             }
